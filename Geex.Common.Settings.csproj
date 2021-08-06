@@ -37,7 +37,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Geex.Common.Abstraction\Geex.Common.Abstraction.csproj" />
-    <ProjectReference Include="..\Geex.Common.Redis\Geex.Common.Redis.csproj" />
     <ProjectReference Include="..\geexbox.logging.elasticsearch\Geexbox.Logging.ElasticSearch.csproj" />
     <ProjectReference Include="..\MongoDB.Entities\MongoDB.Entities\MongoDB.Entities.csproj" />
   </ItemGroup>
