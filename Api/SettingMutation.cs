@@ -19,9 +19,9 @@ namespace Geex.Common.Settings.Api
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<ISetting> UpdateSetting(
+        public async Task<ISetting> EditSetting(
             [Service] IMediator Mediator,
-            UpdateSettingInput input)
+            EditSettingRequest input)
         {
             return await Mediator.Send(input);
         }

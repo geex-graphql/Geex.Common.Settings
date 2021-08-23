@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Geex.Common.Abstraction.Gql.Inputs;
 using Geex.Common.Abstractions;
 using Geex.Common.Abstractions.Enumerations;
 using Geex.Common.Settings.Abstraction;
@@ -32,7 +33,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace Geex.Common.Settings.Core
 {
-    public class SettingHandler : IRequestHandler<UpdateSettingInput, ISetting>, IRequestHandler<GetSettingsInput, IQueryable<ISetting>>
+    public class SettingHandler : IRequestHandler<EditSettingRequest, ISetting>, IRequestHandler<GetSettingsInput, IQueryable<ISetting>>
     {
         public ILogger<SettingHandler> Logger { get; }
         private IRedisDatabase _redisClient;
@@ -128,7 +129,7 @@ namespace Geex.Common.Settings.Core
             return await _redisClient.GetNamedAsync<Setting>(new Setting(settingDefinition, default, settingScope, scopedKey).GetRedisKey());
         }
 
-        public async Task<ISetting> Handle(UpdateSettingInput request, CancellationToken cancellationToken)
+        public async Task<ISetting> Handle(EditSettingRequest request, CancellationToken cancellationToken)
         {
             return await SetAsync(request.Name, request.Scope, request.ScopedKey, request.Value);
         }
