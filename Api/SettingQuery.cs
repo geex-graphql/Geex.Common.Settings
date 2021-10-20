@@ -26,7 +26,7 @@ namespace Geex.Common.Settings.Api
     {
         protected override void Configure(IObjectTypeDescriptor<SettingQuery> descriptor)
         {
-            descriptor.ResolveMethod(x => x.Settings(default, default))
+            descriptor.ConfigQuery(x => x.Settings(default, default))
             .UseOffsetPaging<SettingGqlType>()
             .UseFiltering<ISetting>(x =>
             {
