@@ -9,6 +9,8 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Castle.Core.Internal;
+
 using Geex.Common.Abstraction.Gql.Inputs;
 using Geex.Common.Abstractions;
 using Geex.Common.Abstractions.Enumerations;
@@ -129,12 +131,12 @@ namespace Geex.Common.Settings.Core
             return await _redisClient.GetNamedAsync<Setting>(new Setting(settingDefinition, default, settingScope, scopedKey).GetRedisKey());
         }
 
-        public async Task<ISetting> Handle(EditSettingRequest request, CancellationToken cancellationToken)
+        public virtual async Task<ISetting> Handle(EditSettingRequest request, CancellationToken cancellationToken)
         {
             return await SetAsync(request.Name, request.Scope, request.ScopedKey, request.Value);
         }
 
-        public async Task<IQueryable<ISetting>> Handle(GetSettingsInput request, CancellationToken cancellationToken)
+        public virtual async Task<IQueryable<ISetting>> Handle(GetSettingsInput request, CancellationToken cancellationToken)
         {
             var settingDefinitions = this.SettingDefinitions;
             IEnumerable<Setting> settingValues = Enumerable.Empty<Setting>();
@@ -149,6 +151,7 @@ namespace Geex.Common.Settings.Core
             {
                 settingValues = await this.GetAllForCurrentUserAsync(_principal);
             }
+            settingValues = settingValues.WhereIf(!SettingDefinitions.IsNullOrEmpty(), x => request.SettingDefinitions.Contains(x.Name));
             var result = settingValues/*.Join(settingDefinitions, setting => setting.Name, settingDefinition => settingDefinition.Name, (settingValue, _) => settingValue)*/;
             return result.AsQueryable();
         }
