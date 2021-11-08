@@ -151,7 +151,7 @@ namespace Geex.Common.Settings.Core
             {
                 settingValues = await this.GetAllForCurrentUserAsync(_principal);
             }
-            settingValues = settingValues.WhereIf(!SettingDefinitions.IsNullOrEmpty(), x => request.SettingDefinitions.Contains(x.Name));
+            settingValues = settingValues.WhereIf(!request.SettingDefinitions.IsNullOrEmpty(), x => request.SettingDefinitions.Contains(x.Name));
             var result = settingValues/*.Join(settingDefinitions, setting => setting.Name, settingDefinition => settingDefinition.Name, (settingValue, _) => settingValue)*/;
             return result.AsQueryable();
         }
