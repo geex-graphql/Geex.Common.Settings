@@ -40,11 +40,11 @@ namespace Geex.Common.Settings.Core
         public ILogger<SettingHandler> Logger { get; }
         private IRedisDatabase _redisClient;
         private readonly DbContext _dbContext;
-        private readonly ClaimsPrincipal _principal;
+        private readonly LazyFactory<ClaimsPrincipal>  _principal;
         private static IReadOnlyList<SettingDefinition> _settingDefinitions;
 
 
-        public SettingHandler(IRedisDatabase redisClient, IEnumerable<GeexModule> modules, DbContext dbContext, ClaimsPrincipal principal, ILogger<SettingHandler> logger)
+        public SettingHandler(IRedisDatabase redisClient, IEnumerable<GeexModule> modules, DbContext dbContext, LazyFactory<ClaimsPrincipal> principal, ILogger<SettingHandler> logger)
         {
             Logger = logger;
             _redisClient = redisClient;
@@ -138,18 +138,17 @@ namespace Geex.Common.Settings.Core
 
         public virtual async Task<IQueryable<ISetting>> Handle(GetSettingsInput request, CancellationToken cancellationToken)
         {
-            var settingDefinitions = this.SettingDefinitions;
             IEnumerable<Setting> settingValues = Enumerable.Empty<Setting>();
             if (request.Scope != default)
             {
                 await request.Scope.SwitchAsync(
-                    (SettingScopeEnumeration.User, async () => settingValues = await this.GetUserSettingsAsync(_principal)),
+                    (SettingScopeEnumeration.User, async () => settingValues = await this.GetUserSettingsAsync(_principal.Value)),
                     (SettingScopeEnumeration.Global, async () => settingValues = await this.GetGlobalSettingsAsync())
                 );
             }
             else
             {
-                settingValues = await this.GetAllForCurrentUserAsync(_principal);
+                settingValues = await this.GetAllForCurrentUserAsync(_principal.Value);
             }
             settingValues = settingValues.WhereIf(!request.SettingDefinitions.IsNullOrEmpty(), x => request.SettingDefinitions.Contains(x.Name));
             var result = settingValues/*.Join(settingDefinitions, setting => setting.Name, settingDefinition => settingDefinition.Name, (settingValue, _) => settingValue)*/;
