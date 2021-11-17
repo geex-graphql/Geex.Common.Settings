@@ -40,7 +40,7 @@ namespace Geex.Common.Settings.Core
         public ILogger<SettingHandler> Logger { get; }
         private IRedisDatabase _redisClient;
         private readonly DbContext _dbContext;
-        private readonly LazyFactory<ClaimsPrincipal>  _principal;
+        private readonly LazyFactory<ClaimsPrincipal> _principal;
         private static IReadOnlyList<SettingDefinition> _settingDefinitions;
 
 
@@ -71,7 +71,7 @@ namespace Geex.Common.Settings.Core
             {
                 throw new BusinessException(GeexExceptionType.NotFound, message: "setting name not exists.");
             }
-            var setting = await _dbContext.Find<Setting>().Match(x => x.Name == settingDefinition && x.Scope == scope && x.ScopedKey == scopedKey).ExecuteSingleAsync();
+            var setting = _dbContext.Queryable<Setting>().Single(x => x.Name == settingDefinition && x.Scope == scope && x.ScopedKey == scopedKey);
             setting.SetValue(value);
             await setting.SaveAsync();
             _dbContext.OnCommitted += async (sender) =>
@@ -96,7 +96,7 @@ namespace Geex.Common.Settings.Core
             var globalSettings = await _redisClient.GetAllNamedByKeyAsync<Setting>($"{SettingScopeEnumeration.Global}:*");
             if (SettingDefinitions.Except(globalSettings.Select(x => x.Value.Name)).Any())
             {
-                var dbSettings = await _dbContext.Find<Setting>().Match(x => x.Scope == SettingScopeEnumeration.Global).ExecuteAsync();
+                var dbSettings = _dbContext.Queryable<Setting>().Where(x => x.Scope == SettingScopeEnumeration.Global).ToList();
                 await TrySyncSettings(globalSettings, dbSettings);
                 return dbSettings;
             }
@@ -118,7 +118,7 @@ namespace Geex.Common.Settings.Core
             var userSettings = await _redisClient.GetAllNamedByKeyAsync<Setting>($"{SettingScopeEnumeration.User}:{identity.FindUserId()}:*");
             if (SettingDefinitions.Except(userSettings.Select(x => x.Value.Name)).Any())
             {
-                var dbSettings = await _dbContext.Find<Setting>().Match(x => x.Scope == SettingScopeEnumeration.User && x.ScopedKey == identity.FindUserId()).ExecuteAsync();
+                var dbSettings = _dbContext.Queryable<Setting>().Where(x => x.Scope == SettingScopeEnumeration.User && x.ScopedKey == identity.FindUserId()).ToList();
                 await TrySyncSettings(userSettings, dbSettings);
                 return dbSettings;
             }

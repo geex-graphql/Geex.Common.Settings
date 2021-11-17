@@ -13,14 +13,8 @@ namespace Geex.Common.Settings
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            base.ConfigureServices(context);
-        }
-
-        public override void PostConfigureServices(ServiceConfigurationContext context)
-        {
-
             context.Services.AddSingleton<SettingHandler>();
-            base.PostConfigureServices(context);
+            base.ConfigureServices(context);
         }
     }
 }
