@@ -14,6 +14,12 @@ namespace Geex.Common.Settings.Api
 {
     public class SettingMutation : MutationTypeExtension<SettingMutation>
     {
+        protected override void Configure(IObjectTypeDescriptor<SettingMutation> descriptor)
+        {
+            descriptor.AuthorizeWithDefaultName();
+            base.Configure(descriptor);
+        }
+
         /// <summary>
         /// 更新设置
         /// </summary>

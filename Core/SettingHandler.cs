@@ -35,7 +35,9 @@ using Volo.Abp.DependencyInjection;
 
 namespace Geex.Common.Settings.Core
 {
-    public class SettingHandler : IRequestHandler<EditSettingRequest, ISetting>, IRequestHandler<GetSettingsInput, IQueryable<ISetting>>
+    public class SettingHandler : IRequestHandler<EditSettingRequest, ISetting>,
+        IRequestHandler<GetSettingsInput, IQueryable<ISetting>>,
+         IRequestHandler<GetInitSettingsInput, List<ISetting>>
     {
         public ILogger<SettingHandler> Logger { get; }
         private IRedisDatabase _redisClient;
@@ -153,6 +155,16 @@ namespace Geex.Common.Settings.Core
             settingValues = settingValues.WhereIf(!request.SettingDefinitions.IsNullOrEmpty(), x => request.SettingDefinitions.Contains(x.Name));
             var result = settingValues/*.Join(settingDefinitions, setting => setting.Name, settingDefinition => settingDefinition.Name, (settingValue, _) => settingValue)*/;
             return result.AsQueryable();
+        }
+
+        /// <summary>Handles a request</summary>
+        /// <param name="request">The request</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Response from the request</returns>
+        public async Task<List<ISetting>> Handle(GetInitSettingsInput request, CancellationToken cancellationToken)
+        {
+            var settingValues = await this.GetAllForCurrentUserAsync(_principal.Value);
+            return settingValues.Cast<ISetting>().ToList();
         }
     }
 }

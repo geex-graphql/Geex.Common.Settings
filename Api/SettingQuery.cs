@@ -26,6 +26,7 @@ namespace Geex.Common.Settings.Api
     {
         protected override void Configure(IObjectTypeDescriptor<SettingQuery> descriptor)
         {
+            descriptor.AuthorizeWithDefaultName();
             descriptor.ConfigQuery(x => x.Settings(default, default))
             .UseOffsetPaging<SettingGqlType>()
             .UseFiltering<ISetting>(x =>
@@ -51,6 +52,17 @@ namespace Geex.Common.Settings.Api
             GetSettingsInput input)
         {
             return await Mediator.Send(input);
+        }
+
+        /// <summary>
+        /// 获取初始化应用所需的settings
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        public async Task<List<ISetting>> InitSettings(
+            [Service] IMediator Mediator)
+        {
+            return await Mediator.Send(new GetInitSettingsInput());
         }
     }
 }
