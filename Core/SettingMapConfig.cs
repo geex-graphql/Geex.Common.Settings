@@ -13,9 +13,9 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace Geex.Common.Settings.Core
 {
-    public class SettingMapConfig : EntityMapConfig<Setting>
+    public class SettingMapConfig : IEntityMapConfig<Setting>
     {
-        public override void Map(BsonClassMap<Setting> map)
+        public void Map(BsonClassMap<Setting> map)
         {
             map.AutoMap();
             map.MapMember(x => x.Name).SetSerializer(new EnumerationSerializer<SettingDefinition, string>());
