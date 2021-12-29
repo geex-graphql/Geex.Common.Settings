@@ -13,7 +13,7 @@ namespace Geex.Common.Settings
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<SettingHandler>();
+            context.Services.AddTransient<SettingHandler>();
             base.ConfigureServices(context);
         }
     }

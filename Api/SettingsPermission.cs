@@ -8,7 +8,7 @@ namespace Geex.Common.Settings.Api
         public SettingsPermission([NotNull] string value) : base(value)
         {
         }
-        public static SettingsPermission Query { get; } = new SettingsPermission("query_setting");
+        public static SettingsPermission Query { get; } = new SettingsPermission("query_settings");
         public static SettingsPermission Edit { get; } = new SettingsPermission("mutation_editSetting");
     }
 }

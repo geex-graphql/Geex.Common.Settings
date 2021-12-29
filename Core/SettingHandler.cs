@@ -76,10 +76,12 @@ namespace Geex.Common.Settings.Core
             var setting = _dbContext.Queryable<Setting>().Single(x => x.Name == settingDefinition && x.Scope == scope && x.ScopedKey == scopedKey);
             setting.SetValue(value);
             await setting.SaveAsync();
-            _dbContext.OnCommitted += async (sender) =>
-             {
-                 await _redisClient.SetNamedAsync(setting.GetRedisKey());
-             };
+            // bug: 这里挂载事件会导致生命周期延长, 先同步执行
+            await _redisClient.SetNamedAsync(setting.GetRedisKey());
+            //_dbContext.OnCommitted += async (sender) =>
+            // {
+            //     await _redisClient.SetNamedAsync(setting.GetRedisKey());
+            // };
             return setting;
         }
 
