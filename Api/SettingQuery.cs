@@ -20,6 +20,8 @@ using HotChocolate.Types;
 
 using MediatR;
 
+using MongoDB.Entities;
+
 namespace Geex.Common.Settings.Api
 {
     public class SettingQuery : QueryTypeExtension<SettingQuery>

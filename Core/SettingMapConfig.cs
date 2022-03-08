@@ -18,8 +18,6 @@ namespace Geex.Common.Settings.Core
         public void Map(BsonClassMap<Setting> map)
         {
             map.AutoMap();
-            map.MapMember(x => x.Name).SetSerializer(new EnumerationSerializer<SettingDefinition, string>());
-            map.MapMember(x => x.Scope).SetSerializer(new EnumerationSerializer<SettingScopeEnumeration, string>());
         }
     }
 }
