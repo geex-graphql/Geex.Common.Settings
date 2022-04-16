@@ -11,10 +11,10 @@ using MongoDB.Entities;
 
 namespace Geex.Common.BlobStorage.Migrations
 {
-    public class _637760700229756456_addIndex : IMigration
+    public class _637760700229756456_addIndex : DbMigration
     {
         /// <inheritdoc />
-        public async Task UpgradeAsync(DbContext dbContext)
+        public override async Task UpgradeAsync(DbContext dbContext)
         {
 
             await dbContext.Collection<Setting>().Indexes.CreateManyAsync(new[]

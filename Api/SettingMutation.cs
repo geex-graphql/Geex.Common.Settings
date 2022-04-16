@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
-
-using Geex.Common.Gql.Roots;
+using Geex.Common.Abstraction.Gql.Types;
 using Geex.Common.Settings.Api.Aggregates.Settings;
 using Geex.Common.Settings.Api.Aggregates.Settings.Inputs;
 using Geex.Common.Settings.Core;
@@ -12,7 +11,7 @@ using MediatR;
 
 namespace Geex.Common.Settings.Api
 {
-    public class SettingMutation : MutationTypeExtension<SettingMutation>
+    public class SettingMutation : Mutation<SettingMutation>
     {
         protected override void Configure(IObjectTypeDescriptor<SettingMutation> descriptor)
         {

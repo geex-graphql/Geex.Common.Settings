@@ -4,8 +4,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstraction.Gql.Inputs;
+using Geex.Common.Abstraction.Gql.Types;
 using Geex.Common.Abstractions;
-using Geex.Common.Gql.Roots;
 using Geex.Common.Gql.Types;
 using Geex.Common.Settings.Abstraction;
 using Geex.Common.Settings.Api.Aggregates.Settings;
@@ -24,7 +24,7 @@ using MongoDB.Entities;
 
 namespace Geex.Common.Settings.Api
 {
-    public class SettingQuery : QueryTypeExtension<SettingQuery>
+    public class SettingQuery : Query<SettingQuery>
     {
         protected override void Configure(IObjectTypeDescriptor<SettingQuery> descriptor)
         {
