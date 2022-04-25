@@ -24,12 +24,19 @@ using MongoDB.Entities;
 
 namespace Geex.Common.Settings.Api
 {
-    public class SettingQuery : Query<SettingQuery>
+    public class SettingQuery : QueryExtension<SettingQuery>
     {
+        private readonly IMediator _mediator;
+
+        public SettingQuery(IMediator mediator)
+        {
+            this._mediator = mediator;
+        }
+
         protected override void Configure(IObjectTypeDescriptor<SettingQuery> descriptor)
         {
             descriptor.AuthorizeWithDefaultName();
-            descriptor.ConfigQuery(x => x.Settings(default, default))
+            descriptor.Field(x => x.Settings(default))
             .UseOffsetPaging<SettingGqlType>()
             .UseFiltering<ISetting>(x =>
             {
@@ -49,11 +56,9 @@ namespace Geex.Common.Settings.Api
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<IQueryable<ISetting>> Settings(
-            [Service] IMediator Mediator,
-            GetSettingsInput input)
+        public async Task<IQueryable<ISetting>> Settings(GetSettingsInput input)
         {
-            return await Mediator.Send(input);
+            return await _mediator.Send(input);
         }
 
         /// <summary>
@@ -61,10 +66,9 @@ namespace Geex.Common.Settings.Api
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public async Task<List<ISetting>> InitSettings(
-            [Service] IMediator Mediator)
+        public async Task<List<ISetting>> InitSettings()
         {
-            return await Mediator.Send(new GetInitSettingsInput());
+            return await _mediator.Send(new GetInitSettingsInput());
         }
     }
 }

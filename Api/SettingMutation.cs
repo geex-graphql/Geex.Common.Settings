@@ -11,8 +11,15 @@ using MediatR;
 
 namespace Geex.Common.Settings.Api
 {
-    public class SettingMutation : Mutation<SettingMutation>
+    public class SettingMutation : MutationExtension<SettingMutation>
     {
+        private readonly IMediator _mediator;
+
+        public SettingMutation(IMediator mediator)
+        {
+            this._mediator = mediator;
+        }
+
         protected override void Configure(IObjectTypeDescriptor<SettingMutation> descriptor)
         {
             descriptor.AuthorizeWithDefaultName();
@@ -24,11 +31,9 @@ namespace Geex.Common.Settings.Api
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<ISetting> EditSetting(
-            [Service] IMediator Mediator,
-            EditSettingRequest input)
+        public async Task<ISetting> EditSetting(EditSettingRequest input)
         {
-            return await Mediator.Send(input);
+            return await _mediator.Send(input);
         }
     }
 }
