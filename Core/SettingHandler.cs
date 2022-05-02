@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using Castle.Core.Internal;
 
 using Geex.Common.Abstraction.Gql.Inputs;
+using Geex.Common.Abstraction.MultiTenant;
 using Geex.Common.Abstractions;
 using Geex.Common.Abstractions.Enumerations;
-using Geex.Common.MultiTenant.Api;
 using Geex.Common.Settings.Abstraction;
 using Geex.Common.Settings.Api;
 using Geex.Common.Settings.Api.Aggregates.Settings;
@@ -43,12 +43,12 @@ namespace Geex.Common.Settings.Core
         public ILogger<SettingHandler> Logger { get; }
         private IRedisDatabase _redisClient;
         private readonly DbContext _dbContext;
-        private readonly LazyFactory<ClaimsPrincipal> _principal;
-        private readonly LazyFactory<ICurrentTenant> _currentTenant;
+        private readonly LazyService<ClaimsPrincipal> _principal;
+        private readonly LazyService<ICurrentTenant> _currentTenant;
         private static IReadOnlyList<SettingDefinition> _settingDefinitions;
 
 
-        public SettingHandler(IRedisDatabase redisClient, IEnumerable<GeexModule> modules, DbContext dbContext, LazyFactory<ClaimsPrincipal> principal, ILogger<SettingHandler> logger, LazyFactory<ICurrentTenant> currentTenant)
+        public SettingHandler(IRedisDatabase redisClient, IEnumerable<GeexModule> modules, DbContext dbContext, LazyService<ClaimsPrincipal> principal, ILogger<SettingHandler> logger, LazyService<ICurrentTenant> currentTenant)
         {
             Logger = logger;
             _redisClient = redisClient;

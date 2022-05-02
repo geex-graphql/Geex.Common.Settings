@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Geex.Common.Abstraction.MultiTenant;
 using Geex.Common.Abstraction.Storage;
 using Geex.Common.Settings.Abstraction;
@@ -25,5 +29,9 @@ public class Setting : Entity, ISetting
     public void SetValue(string? value)
     {
         Value = value;
+    }
+    public override async Task<ValidationResult> Validate(IServiceProvider sp, CancellationToken cancellation = default)
+    {
+        return ValidationResult.Success;
     }
 }

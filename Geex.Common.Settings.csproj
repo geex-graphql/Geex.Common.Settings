@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Geex.Common.Abstraction\Geex.Common.Abstraction.csproj" />
-    <ProjectReference Include="..\Geex.Common.MultiTenant\Geex.Common.MultiTenant.csproj" />
     <ProjectReference Include="..\MongoDB.Entities\MongoDB.Entities\MongoDB.Entities.csproj" />
   </ItemGroup>
   <Target Name="CopyPackage" AfterTargets="Pack">
