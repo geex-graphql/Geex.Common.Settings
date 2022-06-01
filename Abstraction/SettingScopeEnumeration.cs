@@ -2,7 +2,7 @@
 
 namespace Geex.Common.Settings.Abstraction
 {
-    public class SettingScopeEnumeration : Enumeration<SettingScopeEnumeration, string>
+    public class SettingScopeEnumeration : Enumeration<SettingScopeEnumeration>
     {
         public int Priority { get; set; }
         public SettingScopeEnumeration(string name, string value, int priority) : base(name, value)

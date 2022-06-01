@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 
 namespace Geex.Common.Settings.Abstraction
 {
-    public class SettingDefinition : Enumeration<SettingDefinition, string>
+    public class SettingDefinition : Enumeration<SettingDefinition>
     {
         public string Description { get; }
         public SettingScopeEnumeration[] ValidScopes { get; }
