@@ -12,6 +12,7 @@ namespace Geex.Common.Settings.Api.Aggregates.Settings.Inputs
     {
         public SettingScopeEnumeration Scope { get; set; }
         public List<SettingDefinition> SettingDefinitions { get; set; }
+        public string FilterByName { get; set; }
 
 
         public GetSettingsInput(SettingScopeEnumeration scope)
@@ -24,5 +25,12 @@ namespace Geex.Common.Settings.Api.Aggregates.Settings.Inputs
             Scope = scope;
             SettingDefinitions = settingDefinitions.ToList();
         }
+
+        public GetSettingsInput(SettingScopeEnumeration scope, string filterByName)
+        {
+            Scope = scope;
+            this.FilterByName = filterByName;
+        }
+
     }
 }

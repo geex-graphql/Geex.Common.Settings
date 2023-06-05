@@ -37,6 +37,7 @@ namespace Geex.Common.Settings.Api
         {
             descriptor.AuthorizeWithDefaultName();
             descriptor.Field(x => x.Settings(default))
+                .Authorize()
             .UseOffsetPaging<SettingGqlType>()
             .UseFiltering<ISetting>(x =>
             {

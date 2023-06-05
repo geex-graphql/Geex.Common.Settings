@@ -12,6 +12,7 @@ namespace Geex.Common.Settings.Api.GqlSchemas.Types
             descriptor.Implements<InterfaceType<ISetting>>();
             descriptor.ConfigEntity();
             descriptor.Field(x => x.Scope);
+            descriptor.Field(x => x.ValidScopes);
             descriptor.Field(x => x.ScopedKey);
             descriptor.Field(x => x.Name);
             descriptor.Field(x => x.Id);

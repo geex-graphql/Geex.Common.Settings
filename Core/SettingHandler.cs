@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Security.Claims;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,8 +28,6 @@ using Microsoft.Extensions.Logging;
 
 using MongoDB.Entities;
 
-using MoreLinq;
-
 using StackExchange.Redis.Extensions.Core;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 
@@ -46,6 +45,9 @@ namespace Geex.Common.Settings.Core
         private readonly LazyService<ClaimsPrincipal> _principal;
         private readonly LazyService<ICurrentTenant> _currentTenant;
         private static IReadOnlyList<SettingDefinition> _settingDefinitions;
+        private static IReadOnlyList<Setting> _settingDefaults;
+
+        private static IReadOnlyList<Setting> SettingDefaults => _settingDefaults ??= _settingDefinitions?.Select(x => x.DefaultInstance).ToList();
 
 
         public SettingHandler(IRedisDatabase redisClient, IEnumerable<GeexModule> modules, DbContext dbContext, LazyService<ClaimsPrincipal> principal, ILogger<SettingHandler> logger, LazyService<ICurrentTenant> currentTenant)
@@ -70,16 +72,33 @@ namespace Geex.Common.Settings.Core
 
         public IReadOnlyList<SettingDefinition> SettingDefinitions => _settingDefinitions;
 
-        public async Task<Setting> SetAsync(SettingDefinition settingDefinition, SettingScopeEnumeration scope, string? scopedKey, string? value)
+        public async Task<Setting> SetAsync(SettingDefinition settingDefinition, SettingScopeEnumeration scope, string? scopedKey, JsonNode? value)
         {
             var definition = this.SettingDefinitions.FirstOrDefault(x => x.Name == settingDefinition);
             if (definition == default)
             {
                 throw new BusinessException(GeexExceptionType.NotFound, message: "setting name not exists.");
             }
-            var setting = _dbContext.Queryable<Setting>().Single(x => x.Name == settingDefinition && x.Scope == scope && x.ScopedKey == scopedKey);
-            setting.SetValue(value);
-            await setting.SaveAsync();
+
+            if (_currentTenant.Value?.Code.IsNullOrEmpty() != true && scope == SettingScopeEnumeration.Global)
+            {
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "cannot update global setting in tenant.");
+            }
+
+            if (_currentTenant.Value?.Code.IsNullOrEmpty() == true && scope == SettingScopeEnumeration.Tenant)
+            {
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "cannot update tenant setting in host.");
+            }
+
+            var setting = _dbContext.Queryable<Setting>().SingleOrDefault(x => x.Name == settingDefinition && x.Scope == scope && x.ScopedKey == scopedKey);
+            if (setting == default)
+            {
+                setting = _dbContext.Attach(new Setting(settingDefinition, value, scope, scopedKey));
+            }
+            else
+            {
+                setting.SetValue(value);
+            }
             // bug: 这里挂载事件会导致生命周期延长, 先同步执行
             await _redisClient.SetNamedAsync(setting.GetRedisKey());
             //_dbContext.OnCommitted += async (sender) =>
@@ -97,18 +116,24 @@ namespace Geex.Common.Settings.Core
 
             return userSettings
                 .Union(tenantSettings, new GenericEqualityComparer<Setting>().With(x => x.Name))
-                .Union(globalSettings, new GenericEqualityComparer<Setting>().With(x => x.Name));
+                .Union(globalSettings, new GenericEqualityComparer<Setting>().With(x => x.Name))
+                ;
         }
         public async Task<List<Setting>> GetGlobalSettings()
         {
             var globalSettings = await _redisClient.GetAllNamedByKeyAsync<Setting>($"{SettingScopeEnumeration.Global}:*");
+            IEnumerable<Setting> result;
             if (SettingDefinitions.Except(globalSettings.Select(x => x.Value.Name)).Any())
             {
                 var dbSettings = _dbContext.Queryable<Setting>().Where(x => x.Scope == SettingScopeEnumeration.Global).ToList();
                 await TrySyncSettings(globalSettings, dbSettings);
-                return dbSettings;
+                result = dbSettings;
             }
-            return globalSettings.Values.ToList();
+            else
+            {
+                result = globalSettings.Values;
+            }
+            return result.Union(SettingDefaults.Where(x => x.Scope == SettingScopeEnumeration.Global), new GenericEqualityComparer<Setting>().With(x => x.Name)).ToList();
         }
 
         private async Task TrySyncSettings(IDictionary<string, Setting> cachedSettings, List<Setting> dbSettings)
@@ -128,14 +153,19 @@ namespace Geex.Common.Settings.Core
             {
                 return new List<Setting>();
             }
+            IEnumerable<Setting> result;
             var tenantSettings = await _redisClient.GetAllNamedByKeyAsync<Setting>($"{SettingScopeEnumeration.Tenant}:{tenantCode}:*");
             if (SettingDefinitions.Except(tenantSettings.Select(x => x.Value.Name)).Any())
             {
                 var dbSettings = _dbContext.Queryable<Setting>().Where(x => x.Scope == SettingScopeEnumeration.Tenant && x.ScopedKey == tenantCode).ToList();
                 await TrySyncSettings(tenantSettings, dbSettings);
-                return dbSettings;
+                result = dbSettings;
             }
-            return tenantSettings.Values.ToList();
+            else
+            {
+                result = tenantSettings.Values;
+            }
+            return result.Union(SettingDefaults.Where(x => x.Scope == SettingScopeEnumeration.Tenant), new GenericEqualityComparer<Setting>().With(x => x.Name)).ToList();
         }
 
         public async Task<List<Setting>> GetUserSettings()
@@ -145,14 +175,19 @@ namespace Geex.Common.Settings.Core
             {
                 return new List<Setting>();
             }
+            IEnumerable<Setting> result;
             var userSettings = await _redisClient.GetAllNamedByKeyAsync<Setting>($"{SettingScopeEnumeration.User}:{identity.FindUserId()}:*");
             if (SettingDefinitions.Except(userSettings.Select(x => x.Value.Name)).Any())
             {
                 var dbSettings = _dbContext.Queryable<Setting>().Where(x => x.Scope == SettingScopeEnumeration.User && x.ScopedKey == identity.FindUserId()).ToList();
                 await TrySyncSettings(userSettings, dbSettings);
-                return dbSettings;
+                result = dbSettings;
             }
-            return userSettings.Values.ToList();
+            else
+            {
+                result = userSettings.Values;
+            }
+            return result.Union(SettingDefaults.Where(x => x.Scope == SettingScopeEnumeration.User), new GenericEqualityComparer<Setting>().With(x => x.Name)).ToList();
         }
 
         public async Task<Setting?> GetOrNullAsync(SettingDefinition settingDefinition, SettingScopeEnumeration settingScope = default,
@@ -181,6 +216,7 @@ namespace Geex.Common.Settings.Core
                 settingValues = await this.GetActiveSettings();
             }
             settingValues = settingValues.WhereIf(!request.SettingDefinitions.IsNullOrEmpty(), x => request.SettingDefinitions.Contains(x.Name));
+            settingValues = settingValues.WhereIf(!request.FilterByName.IsNullOrEmpty(), x => x.Name.Name.Contains(request.FilterByName, StringComparison.InvariantCultureIgnoreCase));
             var result = settingValues/*.Join(settingDefinitions, setting => setting.Name, settingDefinition => settingDefinition.Name, (settingValue, _) => settingValue)*/;
             return result.AsQueryable();
         }
